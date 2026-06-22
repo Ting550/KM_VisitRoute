@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金門縣交通控制系統建置技術參訪</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ── LOGIN OVERLAY ── */
+#login-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0d1117;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sans, 'Noto Sans TC', sans-serif);
+}
+#login-overlay::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(184,134,11,.07) 39px, rgba(184,134,11,.07) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(184,134,11,.07) 39px, rgba(184,134,11,.07) 40px);
+  pointer-events: none;
+}
+.login-box {
+  position: relative;
+  background: #13181f;
+  border: 1px solid rgba(184,134,11,.3);
+  border-radius: 10px;
+  padding: 3rem 2.8rem 2.5rem;
+  width: min(420px, 92vw);
+  box-shadow: 0 0 60px rgba(0,0,0,.6), 0 0 0 1px rgba(184,134,11,.08);
+  text-align: center;
+}
+.login-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #b52b1e, #b8860b, #1e5f8a);
+  border-radius: 10px 10px 0 0;
+}
+.login-icon {
+  font-size: 2.8rem; margin-bottom: .8rem; display: block;
+  filter: drop-shadow(0 0 12px rgba(184,134,11,.4));
+}
+.login-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+  font-weight: 700;
+  color: #f5f0e8;
+  margin-bottom: .4rem;
+  letter-spacing: .05em;
+}
+.login-sub {
+  font-size: .88rem;
+  color: rgba(245,240,232,.4);
+  margin-bottom: 2rem;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: .08em;
+}
+.login-field {
+  position: relative; margin-bottom: 1.2rem;
+}
+.login-field input {
+  width: 100%;
+  padding: .95rem 3rem .95rem 1.1rem;
+  font-size: 1.5rem;
+  letter-spacing: .25em;
+  font-family: 'Share Tech Mono', monospace;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid rgba(245,240,232,.15);
+  border-radius: 6px;
+  color: #f5f0e8;
+  outline: none;
+  text-align: center;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-text-security: disc;
+}
+.login-field input:focus {
+  border-color: rgba(184,134,11,.7);
+  box-shadow: 0 0 0 3px rgba(184,134,11,.12);
+}
+.toggle-pw {
+  position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: rgba(245,240,232,.4); font-size: 1.1rem;
+  transition: color .2s; padding: .2rem;
+}
+.toggle-pw:hover { color: rgba(245,240,232,.8); }
+#login-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  background: linear-gradient(135deg, #b8860b, #c8950c);
+  color: #0d1117;
+  border: none; border-radius: 6px; cursor: pointer;
+  letter-spacing: .08em;
+  transition: opacity .2s, transform .1s;
+  margin-top: .3rem;
+}
+#login-btn:hover { opacity: .9; }
+#login-btn:active { transform: scale(.98); }
+#login-error {
+  margin-top: 1rem;
+  font-size: .88rem;
+  color: #e05050;
+  min-height: 1.3em;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: .05em;
+  transition: opacity .3s;
+}
+.login-hint {
+  margin-top: 1.4rem;
+  font-size: .75rem;
+  color: rgba(245,240,232,.2);
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: .06em;
+}
+/* shake animation on error */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+.shake { animation: shake .4s ease; }
+/* fade-out overlay */
+@keyframes fadeOut { to { opacity: 0; pointer-events: none; } }
+.fade-out { animation: fadeOut .5s ease forwards; }
+
+:root {
+  --ink: #0d1117;
+  --paper: #f5f0e8;
+  --accent: #b52b1e;
+  --accent2: #1e5f8a;
+  --accent3: #1a5c3a;
+  --gold: #b8860b;
+  --muted: #6b6050;
+  --border: #cdc5b0;
+  --today-bg: #fff8e1;
+  --today-border: #e6a817;
+  --card-bg: #fffdf7;
+  --shadow: 0 2px 18px rgba(13,17,23,.10);
+  --radius: 8px;
+  --mono: 'Share Tech Mono', monospace;
+  --serif: 'Noto Serif TC', serif;
+  --sans: 'Noto Sans TC', sans-serif;
+
+  /* ── 老花眼字體尺寸基準 ── */
+  --fs-base: 18px;       /* 主要內文 */
+  --fs-sm: 16px;         /* 次要文字 */
+  --fs-xs: 14px;         /* 標籤/輔助 */
+  --fs-h1: clamp(1.5rem, 4vw, 2.2rem);
+  --fs-h2: 1.5rem;
+  --fs-h3: 1.25rem;
+  --fs-time: 1.05rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: var(--fs-base); }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--fs-base);
+  line-height: 1.8;
+  min-height: 100vh;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(160,140,100,.05) 39px, rgba(160,140,100,.05) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(160,140,100,.05) 39px, rgba(160,140,100,.05) 40px);
+  pointer-events: none; z-index: 0;
+}
+.wrap { position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent2));
+}
+.header-inner { max-width: 1100px; margin: 0 auto; }
+.header-label {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  letter-spacing: .12em;
+  color: var(--gold);
+  margin-bottom: .5rem;
+}
+header h1 {
+  font-family: var(--serif);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: .04em;
+}
+.header-meta {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  margin-top: .8rem;
+  font-size: var(--fs-sm);
+  color: rgba(245,240,232,.7);
+  font-family: var(--mono);
+}
+
+/* ── COUNTDOWN ── */
+#countdown-bar {
+  background: linear-gradient(90deg, #1a1a2e, #16213e);
+  padding: .9rem 2rem;
+  display: flex; align-items: center; justify-content: center;
+  gap: 2rem; flex-wrap: wrap;
+  font-family: var(--mono);
+  color: #aad4f5;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.cd-label { color: rgba(170,212,245,.6); font-size: var(--fs-sm); letter-spacing: .1em; }
+.cd-units { display: flex; gap: 1rem; }
+.cd-unit { text-align: center; min-width: 52px; }
+.cd-num { font-size: 1.8rem; font-weight: 700; color: #e8f4fd; display: block; line-height: 1.1; }
+.cd-sub { font-size: var(--fs-xs); color: rgba(170,212,245,.5); letter-spacing: .1em; }
+#cd-status { color: var(--gold); font-size: var(--fs-sm); }
+
+/* ── NAV TABS ── */
+nav.tabs {
+  background: var(--card-bg);
+  border-bottom: 3px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 3px 14px rgba(0,0,0,.08);
+}
+.tabs-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: stretch;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs-inner::-webkit-scrollbar { display: none; }
+.tab-btn {
+  font-family: var(--sans);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  padding: 1rem 1.6rem;
+  border: none; background: none; cursor: pointer;
+  color: var(--muted);
+  border-bottom: 4px solid transparent;
+  margin-bottom: -3px;
+  white-space: nowrap;
+  transition: color .2s, border-color .2s;
+  letter-spacing: .03em;
+}
+.tab-btn:hover { color: var(--accent2); }
+.tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+
+/* ── MAIN ── */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+}
+
+/* ── SECTION HEADS ── */
+.section-block { margin-bottom: 3.5rem; }
+.section-head {
+  display: flex; align-items: baseline; gap: 1rem;
+  margin-bottom: 1.8rem;
+  padding-bottom: .7rem;
+  border-bottom: 3px solid var(--border);
+}
+.section-head h2 {
+  font-family: var(--serif);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.badge {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  padding: .18rem .6rem;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper);
+  letter-spacing: .1em;
+}
+
+/* ── DAY BLOCKS ── */
+.day-block {
+  margin-bottom: 1.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+.day-block.today-day {
+  border: 3px solid var(--today-border);
+  box-shadow: 0 0 0 5px rgba(230,168,23,.13), var(--shadow);
+}
+.day-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.4rem;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  user-select: none;
+}
+.today-day .day-header {
+  background: linear-gradient(90deg, #6b3d00, #b8860b);
+}
+.day-label {
+  font-family: var(--serif);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  flex: 1;
+}
+.day-date { font-family: var(--mono); font-size: var(--fs-sm); opacity: .75; }
+.today-badge {
+  display: none;
+  background: var(--today-border);
+  color: var(--ink);
+  font-size: var(--fs-xs); font-weight: 700;
+  padding: .15rem .55rem;
+  border-radius: 3px;
+  letter-spacing: .1em;
+  font-family: var(--mono);
+}
+.today-day .today-badge { display: inline-block; }
+.accordion-icon { font-size: 1rem; transition: transform .3s; color: rgba(245,240,232,.55); }
+.day-block.open .accordion-icon { transform: rotate(180deg); }
+
+.day-progress-wrap { height: 4px; background: rgba(255,255,255,.1); }
+.day-progress-bar { height: 4px; background: linear-gradient(90deg, var(--today-border), var(--accent)); width: 0%; transition: width .5s; }
+
+.day-rows { display: none; width: 100%; border-collapse: collapse; }
+.day-block.open .day-rows { display: table; }
+
+@media (min-width: 769px) {
+  .day-rows { display: table !important; }
+  .accordion-icon { display: none; }
+  .day-header { cursor: default; }
+}
+
+.day-rows tr { border-top: 1px solid var(--border); }
+.day-rows tr:first-child { border-top: none; }
+.day-rows td { padding: .85rem 1.3rem; vertical-align: top; }
+.col-time {
+  font-family: var(--mono);
+  font-size: var(--fs-time);
+  color: var(--accent2);
+  white-space: nowrap;
+  width: 100px;
+  padding-top: .9rem;
+  font-weight: 700;
+}
+.col-item { font-size: var(--fs-base); font-weight: 500; line-height: 1.7; }
+.col-note { font-size: var(--fs-sm); color: var(--muted); font-style: italic; width: 240px; line-height: 1.6; }
+/* Row type backgrounds - subtle, consistent with paper theme */
+.day-rows tr.row-visit   { background: rgba(44,110,155,.07); }    /* 藍   - 參訪地點 */
+.day-rows tr.row-transit { background: rgba(140,120,80,.06); }     /* 暖褐 - 移動接駁 */
+.day-rows tr.row-meal    { background: rgba(181,43,30,.06); }      /* 玫瑰紅 - 餐廳用餐 */
+.day-rows tr.row-hotel   { background: rgba(26,92,58,.07); }       /* 綠   - 住宿 */
+/* 電腦版隱藏手機專用地址按鈕 */
+.col-hotel {
+  font-size: var(--fs-base);
+  color: var(--ink);
+  font-weight: 500;
+}
+.col-hotel-time {
+  color: var(--accent2) !important;
+  font-size: var(--fs-time) !important;
+  font-weight: 700;
+}
+.day-rows tr:has(.col-hotel) { border-top: 1px dashed var(--border); }
+.day-rows tr.current-row { background: rgba(230,168,23,.1) !important; }
+.day-rows tr.current-row .col-item { font-weight: 700; color: var(--accent); }
+
+/* ── VISIT CARDS ── */
+.visit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.4rem;
+}
+.visit-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.vc-head {
+  display: flex; align-items: center; gap: .9rem;
+  padding: 1rem 1.2rem;
+  background: var(--ink); color: var(--paper);
+  cursor: pointer;
+}
+.vc-num {
+  font-family: var(--mono); font-size: var(--fs-sm);
+  background: var(--accent); padding: .18rem .5rem;
+  border-radius: 3px; letter-spacing: .05em; white-space: nowrap;
+}
+.vc-title { font-family: var(--serif); font-size: var(--fs-base); font-weight: 600; flex: 1; line-height: 1.4; }
+.vc-icon { font-size: .95rem; color: rgba(245,240,232,.5); transition: transform .3s; }
+.visit-card.open .vc-icon { transform: rotate(180deg); }
+
+.vc-body { padding: 1.2rem 1.3rem; display: none; }
+.visit-card.open .vc-body { display: block; }
+
+@media (min-width: 769px) {
+  .vc-body { display: block !important; }
+  .vc-icon { display: none; }
+  .vc-head { cursor: default; }
+}
+
+.vc-section-label {
+  font-family: var(--mono); font-size: var(--fs-xs);
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: .45rem; margin-top: 1rem;
+}
+.vc-section-label:first-child { margin-top: 0; }
+.vc-desc {
+  font-size: var(--fs-base); line-height: 1.85;
+  color: #1e1a14;
+  border-left: 3px solid var(--border);
+  padding-left: .9rem;
+  white-space: pre-line;
+}
+.vc-items { list-style: none; padding: 0; }
+.vc-items li {
+  font-size: var(--fs-base); padding: .28rem 0 .28rem 1.3rem;
+  position: relative; color: #1e1a14; line-height: 1.65;
+}
+.vc-items li::before { content: '›'; position: absolute; left: 0; color: var(--accent2); font-weight: 700; font-size: 1.1em; }
+.vc-contact {
+  margin-top: 1rem; padding: .75rem 1rem;
+  background: rgba(30,95,138,.06);
+  border-radius: 5px; border-left: 3px solid var(--accent2);
+  font-size: var(--fs-sm); color: #143550; line-height: 1.9;
+}
+.vc-contact strong { font-weight: 700; font-size: var(--fs-base); }
+
+/* ── ISSUE CARDS ── */
+.issue-list { display: flex; flex-direction: column; gap: 1rem; }
+.issue-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.ic-head {
+  display: flex; align-items: center; gap: .9rem;
+  padding: 1rem 1.2rem;
+  cursor: pointer; background: #f7f2e8;
+  border-bottom: 1px solid transparent; transition: background .2s;
+}
+.ic-head:hover { background: #ede8db; }
+.issue-card.open .ic-head { border-bottom-color: var(--border); }
+.ic-num {
+  font-family: var(--mono); font-size: var(--fs-sm);
+  background: var(--accent2); color: white;
+  padding: .15rem .5rem; border-radius: 3px; white-space: nowrap;
+}
+.ic-place { font-weight: 700; font-size: var(--fs-base); flex: 1; }
+.ic-icon { font-size: .95rem; color: var(--muted); transition: transform .3s; }
+.issue-card.open .ic-icon { transform: rotate(180deg); }
+.ic-body { display: none; padding: 1.1rem 1.3rem; }
+.issue-card.open .ic-body { display: block; }
+@media (min-width: 769px) {
+  .ic-body { display: block !important; }
+  .ic-icon { display: none; }
+  .ic-head { cursor: default; }
+}
+.issue-list-plain { list-style: none; padding: 0; }
+.issue-list-plain li {
+  font-size: var(--fs-base); padding: .35rem 0 .35rem 1.4rem;
+  position: relative; line-height: 1.7;
+  border-bottom: 1px solid rgba(205,197,176,.35);
+  color: #1e1a14;
+}
+.issue-list-plain li:last-child { border-bottom: none; }
+.issue-list-plain li::before { content: '●'; position: absolute; left: 0; color: var(--accent2); font-size: .6em; top: .7em; }
+
+/* ── ROSTER ── */
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.4rem;
+}
+.roster-org {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.ro-head {
+  padding: 1rem 1.2rem;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--serif); font-size: var(--fs-base); font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  letter-spacing: .04em;
+}
+.ro-icon { font-size: .95rem; color: rgba(245,240,232,.5); transition: transform .3s; }
+.roster-org.open .ro-icon { transform: rotate(180deg); }
+.ro-body { display: none; }
+.roster-org.open .ro-body { display: block; }
+@media (min-width: 769px) {
+  .ro-body { display: block !important; }
+  .ro-icon { display: none; }
+  .ro-head { cursor: default; }
+}
+.roster-table { width: 100%; border-collapse: collapse; }
+.roster-table th {
+  font-family: var(--mono); font-size: var(--fs-xs);
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); padding: .55rem 1.1rem;
+  text-align: left; border-bottom: 2px solid var(--border);
+  background: #f0ebe0;
+}
+.roster-table td {
+  padding: .6rem 1.1rem; font-size: var(--fs-base);
+  border-bottom: 1px solid rgba(205,197,176,.4); vertical-align: middle;
+}
+.roster-table tr:last-child td { border-bottom: none; }
+.col-rank { color: var(--muted); }
+.dept-chip {
+  display: inline-block; background: rgba(26,92,58,.08);
+  color: var(--accent3); border-radius: 4px;
+  padding: .12rem .5rem; font-size: var(--fs-sm); font-family: var(--mono);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink); color: rgba(245,240,232,.4);
+  text-align: center; padding: 1.8rem;
+  font-family: var(--mono); font-size: var(--fs-sm);
+  letter-spacing: .08em; position: relative; z-index: 1;
+}
+
+@media (max-width: 768px) {
+  main { padding: 1.5rem 1rem 3rem; }
+  .visit-grid, .roster-grid { grid-template-columns: 1fr; }
+
+  /* 行程表手機版：改 flex，時間+行程各一欄 */
+  .day-rows { display: block; width: 100%; }
+  .day-rows tbody { display: block; }
+  .day-rows .col-note { display: none; }
+  .day-rows tr {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    border-top: 1px solid var(--border);
+  }
+  .day-rows tr:first-child { border-top: none; }
+  .day-rows .col-time {
+    flex: 0 0 auto;
+    width: 115px;
+    min-width: 115px;
+    font-size: var(--fs-sm);
+    padding: .75rem .4rem .75rem .75rem;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .3rem;
+  }
+  .day-rows .col-item {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: .75rem .75rem .75rem .3rem;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /* 地址展開列（JS 動態插入 tr.addr-row） */
+  tr.addr-row { display: block; border-top: 1px dashed rgba(44,110,155,.25); }
+  tr.addr-row td {
+    display: block;
+    padding: .4rem 1rem .6rem 1rem;
+    font-size: var(--fs-base);
+    color: var(--accent2);
+    font-style: italic;
+    line-height: 1.7;
+    background: rgba(44,110,155,.05);
+    width: 100%;
+  }
+
+  /* 地址按鈕（在時間欄下方） */
+  .addr-btn {
+    display: inline-block;
+    font-size: var(--fs-xs);
+    color: var(--accent2);
+    background: rgba(44,110,155,.08);
+    border: 1px solid rgba(44,110,155,.2);
+    border-radius: 3px;
+    padding: .12rem .4rem;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background .15s;
+    line-height: 1.5;
+  }
+  .addr-btn.active {
+    background: rgba(44,110,155,.18);
+    color: var(--accent);
+    border-color: rgba(181,43,30,.3);
+  }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.day-rows, .vc-body, .ic-body, .ro-body { animation: fadeIn .2s ease; }
+
+/* ── STICKY NOTES ── */
+.notes-area {
+  padding: .6rem 1.3rem 1rem;
+  border-top: 1px dashed var(--border);
+  background: #fdfaf3;
+}
+.notes-header {
+  display: flex; align-items: center; gap: .7rem;
+  margin-bottom: .75rem;
+}
+.notes-label {
+  font-family: var(--mono); font-size: var(--fs-xs);
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); flex: 1;
+}
+.btn-add-note {
+  display: flex; align-items: center; gap: .35rem;
+  background: var(--gold); color: #0d1117;
+  border: none; border-radius: 5px; cursor: pointer;
+  font-family: var(--sans); font-size: var(--fs-sm);
+  font-weight: 700; padding: .35rem .85rem;
+  transition: opacity .15s, transform .1s;
+}
+.btn-add-note:hover { opacity: .85; }
+.btn-add-note:active { transform: scale(.97); }
+.notes-list {
+  display: flex; flex-wrap: wrap; gap: .85rem;
+}
+.note-card {
+  background: #fffde7;
+  border: 1px solid #f0d060;
+  border-radius: 5px;
+  padding: .75rem .9rem .6rem;
+  min-width: 200px; max-width: 280px;
+  flex: 1 1 200px;
+  box-shadow: 2px 3px 10px rgba(0,0,0,.07);
+  position: relative;
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+.note-card.blue  { background: #e3f2fd; border-color: #90caf9; }
+.note-card.green { background: #e8f5e9; border-color: #a5d6a7; }
+.note-card.pink  { background: #fce4ec; border-color: #f48fb1; }
+.note-author {
+  font-weight: 700; font-size: var(--fs-xs);
+  color: #5a4500; margin-bottom: .35rem;
+  font-family: var(--mono); letter-spacing: .05em;
+}
+.note-card.blue  .note-author { color: #0d47a1; }
+.note-card.green .note-author { color: #1b5e20; }
+.note-card.pink  .note-author { color: #880e4f; }
+.note-body { color: #2a2015; white-space: pre-wrap; word-break: break-word; }
+.note-card.blue .note-body, .note-card.green .note-body, .note-card.pink .note-body { color: #1a1a2e; }
+.note-ts {
+  font-size: .68rem; color: rgba(0,0,0,.3);
+  margin-top: .5rem; font-family: var(--mono);
+}
+.note-actions {
+  display: flex; gap: .4rem; margin-top: .55rem;
+}
+.note-btn {
+  font-size: .72rem; border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.6); border-radius: 3px;
+  padding: .15rem .45rem; cursor: pointer; color: #444;
+  font-family: var(--sans); transition: background .15s;
+}
+.note-btn:hover { background: rgba(255,255,255,.9); }
+.note-btn.del { color: var(--accent); border-color: rgba(181,43,30,.2); }
+
+/* ── MODAL ── */
+#note-modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 9000;
+  background: rgba(13,17,23,.55); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center;
+}
+#note-modal-backdrop.open { display: flex; }
+#note-modal {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 2rem 2rem 1.6rem;
+  width: min(480px, 94vw);
+  box-shadow: 0 8px 40px rgba(0,0,0,.25);
+  position: relative;
+}
+#note-modal h3 {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 700;
+  margin-bottom: 1.2rem; letter-spacing: .04em;
+}
+.modal-field { margin-bottom: 1rem; }
+.modal-field label {
+  display: block; font-size: var(--fs-sm); font-weight: 600;
+  margin-bottom: .35rem; color: var(--muted);
+  font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase;
+}
+.modal-field input, .modal-field textarea, .modal-field select {
+  width: 100%;
+  padding: .7rem .9rem;
+  font-size: var(--fs-base);
+  font-family: var(--sans);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .2s;
+  resize: vertical;
+}
+.modal-field input:focus, .modal-field textarea:focus, .modal-field select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,134,11,.1);
+}
+.modal-field textarea { min-height: 100px; }
+.modal-colors { display: flex; gap: .6rem; margin-top: .3rem; }
+.color-opt {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2.5px solid transparent; cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.color-opt:hover { transform: scale(1.1); }
+.color-opt.selected { border-color: var(--ink); transform: scale(1.15); }
+.color-opt[data-c="yellow"] { background: #fffde7; border-color: #f0d060; }
+.color-opt[data-c="blue"]   { background: #e3f2fd; border-color: #90caf9; }
+.color-opt[data-c="green"]  { background: #e8f5e9; border-color: #a5d6a7; }
+.color-opt[data-c="pink"]   { background: #fce4ec; border-color: #f48fb1; }
+.color-opt.selected[data-c="yellow"] { border-color: #b8860b; }
+.color-opt.selected[data-c="blue"]   { border-color: #0d47a1; }
+.color-opt.selected[data-c="green"]  { border-color: #1b5e20; }
+.color-opt.selected[data-c="pink"]   { border-color: #880e4f; }
+.modal-actions { display: flex; gap: .75rem; margin-top: 1.4rem; justify-content: flex-end; }
+.btn-modal-cancel {
+  padding: .65rem 1.3rem; border-radius: 6px;
+  border: 1.5px solid var(--border); background: none;
+  font-size: var(--fs-base); cursor: pointer; color: var(--muted);
+  font-family: var(--sans);
+}
+.btn-modal-save {
+  padding: .65rem 1.6rem; border-radius: 6px;
+  border: none; background: var(--gold); color: #0d1117;
+  font-size: var(--fs-base); font-weight: 700; cursor: pointer;
+  font-family: var(--sans); letter-spacing: .04em;
+  transition: opacity .15s;
+}
+.btn-modal-save:hover { opacity: .88; }
+.modal-err { color: var(--accent); font-size: var(--fs-sm); margin-top: .5rem; min-height: 1.2em; }
+
+/* ── 手機版名單排版 ── */
+@media (max-width: 768px) {
+  /* 一般名單：隱藏「部門」欄，其餘欄位放大 */
+  .roster-table th,
+  .roster-table td {
+    padding: .65rem .75rem;
+    font-size: var(--fs-base);
+  }
+
+  /* 晚宴名單（4欄）手機改卡片式 */
+  .dinner-table { display: block; }
+  .dinner-table thead { display: none; }
+  .dinner-table tbody { display: block; }
+  .dinner-table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .2rem .5rem;
+    padding: .75rem .9rem;
+    border-bottom: 1px solid rgba(205,197,176,.4);
+    font-size: var(--fs-base);
+  }
+  .dinner-table tr:last-child { border-bottom: none; }
+  .dinner-table td {
+    display: inline;
+    padding: 0;
+    border: none;
+    font-size: var(--fs-base);
+    vertical-align: middle;
+  }
+  /* 晚宴名單手機版：全部同一行 */
+  .dinner-table tr {
+    padding: .5rem 1rem .5rem .75rem;
+    gap: 0 .25rem;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  /* 項次 */
+  .dinner-table td:nth-child(1) {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    flex: 0 0 auto;
+    min-width: 1.5rem;
+    padding-right: .1rem;
+  }
+  /* 職稱：灰小字，固定寬度讓姓名對齊 */
+  .dinner-table td:nth-child(2) {
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    flex: 0 0 4.5rem;
+    width: 4.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* 姓名：粗體，固定寬度靠左，視覺上垂直對齊 */
+  .dinner-table td:nth-child(3) {
+    font-weight: 700;
+    font-size: var(--fs-base);
+    color: var(--ink);
+    flex: 0 0 4rem;
+    width: 4rem;
+    white-space: nowrap;
+    text-align: left;
+  }
+  /* 部門 chip：靠右，絕不換行 */
+  .dinner-table td:nth-child(4) {
+    flex: 0 0 auto;
+    padding: 0 0 0 .25rem;
+    display: flex;
+    align-items: center;
+  }
+  .dinner-table td:nth-child(4) .dept-chip {
+    font-size: var(--fs-xs);
+    padding: .1rem .4rem;
+    white-space: nowrap;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box" id="login-box">
+    <span class="login-icon">🔒</span>
+    <div class="login-title">金門縣交通控制系統建置技術參訪</div>
+    <div class="login-sub">ACCESS PROTECTED · 請輸入存取密碼</div>
+    <div class="login-field">
+      <input type="password" id="pw-input" placeholder="••••••••"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             maxlength="20" inputmode="numeric"
+             onkeydown="if(event.key==='Enter') doLogin()">
+      <button class="toggle-pw" id="toggle-pw" onclick="togglePw()" title="顯示/隱藏密碼" type="button">👁</button>
+    </div>
+    <button id="login-btn" onclick="doLogin()">確認登入</button>
+    <div id="login-error"></div>
+    <div class="login-hint">SHA-256 驗證 · 原始碼不儲存明文密碼</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-label">金門縣政府觀光處 × 台灣世曦工程顧問股份有限公司</div>
+    <h1>金門縣交通控制系統建置技術參訪</h1>
+    <div class="header-meta">
+      <span>📅 2026年6月29日（一）至 7月1日（三）</span>
+      <span>📍 台北市・宜蘭縣</span>
+      <span>👥 12 位參訪人員</span>
+      <span>🏛 6 個參訪單位</span>
+    </div>
+  </div>
+</header>
+
+<!-- COUNTDOWN -->
+<div id="countdown-bar">
+  <span class="cd-label">活動倒數</span>
+  <div class="cd-units">
+    <div class="cd-unit"><span class="cd-num" id="cd-d">--</span><span class="cd-sub">天</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cd-h">--</span><span class="cd-sub">時</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cd-m">--</span><span class="cd-sub">分</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cd-s">--</span><span class="cd-sub">秒</span></div>
+  </div>
+  <span id="cd-status"></span>
+</div>
+
+<!-- NAV -->
+<nav class="tabs" id="main-nav">
+  <div class="tabs-inner">
+    <button class="tab-btn" data-target="sec-itinerary">📋 行程表</button>
+    <button class="tab-btn" data-target="sec-visit">🏢 參訪介紹</button>
+    <button class="tab-btn" data-target="sec-issues">💬 討論議題</button>
+    <button class="tab-btn" data-target="sec-roster">👥 參訪名單</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ① ITINERARY -->
+  <div class="section-block" id="sec-itinerary">
+    <div class="section-head">
+      <h2>行程表</h2>
+      <span class="badge">3 DAYS</span>
+    </div>
+
+    <!-- Day 1 -->
+    <div class="day-block open" id="day-1" data-date="2026-06-29"
+         data-times="08:00,11:00,12:10,14:00,15:30,17:00,18:00">
+      <div class="day-header" onclick="toggleDay(this.parentElement)">
+        <span class="day-label">第一天</span>
+        <span class="day-date">2026年6月29日（一）</span>
+        <span class="today-badge">▶ 今日</span>
+        <span class="accordion-icon">▾</span>
+      </div>
+      <div class="day-progress-wrap"><div class="day-progress-bar" id="prog-1"></div></div>
+      <table class="day-rows">
+        <tr data-time="08:00" class="row-transit">
+          <td class="col-time">08:00–08:55</td>
+          <td class="col-item">✈ 金門機場集合</td>
+          <td class="col-note">8:55 立榮 B7-8802 起飛</td>
+        </tr>
+        <tr data-time="08:55" class="row-transit">
+          <td class="col-time">08:55–09:55</td>
+          <td class="col-item">✈ 飛行時間</td>
+          <td class="col-note">9:55 抵台北松山機場</td>
+        </tr>
+        <tr data-time="10:30" class="row-transit">
+          <td class="col-time">10:30–11:00</td>
+          <td class="col-item">🚌 前往台北市大數據中心</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="11:00" class="row-visit">
+          <td class="col-time">11:00–11:50</td>
+          <td class="col-item">🏛 參訪臺北市大數據中心</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="11:50" class="row-transit">
+          <td class="col-time">11:50–12:10</td>
+          <td class="col-item">🚌 前往餐廳</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-addr="臺北市中山區圓山里中山北路三段59號" data-time="12:10" class="row-meal">
+          <td class="col-time">12:10–13:40</td>
+          <td class="col-item">🍽 台北午餐（海霸王餐廳）</td>
+          <td class="col-note">📍 臺北市中山區圓山里中山北路三段59號</td>
+        </tr>
+        <tr data-time="13:40" class="row-transit">
+          <td class="col-time">13:40–14:00</td>
+          <td class="col-item">🚌 前往台北市交控中心</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="14:00" class="row-visit">
+          <td class="col-time">14:00–15:30</td>
+          <td class="col-item">🚦 參訪臺北市交通控制中心</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="15:30" class="row-visit">
+          <td class="col-time">15:30–16:30</td>
+          <td class="col-item">📡 參訪臺北市交通資訊中心</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="16:30" class="row-transit">
+          <td class="col-time">16:30–17:00</td>
+          <td class="col-item">🚌 前往飯店</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-addr="臺北市萬華區艋舺大道167號" data-time="17:00" class="row-hotel">
+          <td class="col-time">17:00–18:00</td>
+          <td class="col-item">🏨 夜宿台北飯店（凱達飯店）Check In</td>
+          <td class="col-note">📍 臺北市萬華區艋舺大道167號</td>
+        </tr>
+        <tr data-addr="臺北市萬華區艋舺大道167號" data-time="18:00" class="row-meal">
+          <td class="col-time">18:00–20:00</td>
+          <td class="col-item">🍽 台北晚餐（凱達飯店餐廳）</td>
+          <td class="col-note">📍 臺北市萬華區艋舺大道167號</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-block open" id="day-2" data-date="2026-06-30"
+         data-times="08:30,10:00,12:00,15:00,17:00,19:00">
+      <div class="day-header" onclick="toggleDay(this.parentElement)">
+        <span class="day-label">第二天</span>
+        <span class="day-date">2026年6月30日（二）</span>
+        <span class="today-badge">▶ 今日</span>
+        <span class="accordion-icon">▾</span>
+      </div>
+      <div class="day-progress-wrap"><div class="day-progress-bar" id="prog-2"></div></div>
+      <table class="day-rows">
+        <tr data-time="08:30" class="row-transit">
+          <td class="col-time">08:30–10:00</td>
+          <td class="col-item">🚌 集合前往宜蘭</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="10:00" class="row-visit">
+          <td class="col-time">10:00–11:30</td>
+          <td class="col-item">🚌 參訪宜蘭轉運站</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="11:30" class="row-transit">
+          <td class="col-time">11:30–12:00</td>
+          <td class="col-item">🚌 前往餐廳</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-addr="宜蘭市健康路一段47號" data-time="12:00" class="row-meal">
+          <td class="col-time">12:00–13:30</td>
+          <td class="col-item">🍽 宜蘭午餐（山渡空間食藝）</td>
+          <td class="col-note">📍 宜蘭市健康路一段47號</td>
+        </tr>
+        <tr data-time="13:30" class="row-transit">
+          <td class="col-time">13:30–15:00</td>
+          <td class="col-item">🚌 前往台北捷運北投機廠</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="15:00" class="row-visit">
+          <td class="col-time">15:00–16:30</td>
+          <td class="col-item">🚇 參訪台北捷運北投機廠</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="16:30" class="row-transit">
+          <td class="col-time">16:30–17:00</td>
+          <td class="col-item">🚌 前往餐廳</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-addr="臺北市北投區開明里中和街238號" data-time="17:00" class="row-meal">
+          <td class="col-time">17:00–19:00</td>
+          <td class="col-item">🍽 台北晚餐（蓬萊餐廳）</td>
+          <td class="col-note">📍 臺北市北投區開明里中和街238號</td>
+        </tr>
+        <tr data-addr="臺北市萬華區艋舺大道167號" data-time="19:00" class="row-hotel">
+          <td class="col-time">19:00–19:30</td>
+          <td class="col-item">🏨 夜宿台北飯店（凱達飯店）</td>
+          <td class="col-note">📍 臺北市萬華區艋舺大道167號</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-block open" id="day-3" data-date="2026-07-01"
+         data-times="08:00,09:00,11:00,13:00,13:30">
+      <div class="day-header" onclick="toggleDay(this.parentElement)">
+        <span class="day-label">第三天</span>
+        <span class="day-date">2026年7月1日（三）</span>
+        <span class="today-badge">▶ 今日</span>
+        <span class="accordion-icon">▾</span>
+      </div>
+      <div class="day-progress-wrap"><div class="day-progress-bar" id="prog-3"></div></div>
+      <table class="day-rows">
+        <tr data-time="08:00" class="row-transit">
+          <td class="col-time">08:00–09:00</td>
+          <td class="col-item">🚌 集合前往淡江大橋</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="09:00" class="row-visit">
+          <td class="col-time">09:00–10:30</td>
+          <td class="col-item">🌉 參訪淡江大橋橋梁管理中心</td>
+          <td class="col-note"></td>
+        </tr>
+        <tr data-time="10:30" class="row-transit">
+          <td class="col-time">10:30–11:00</td>
+          <td class="col-item">🚌 前往餐廳</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-addr="臺北市中山區圓山里民族東路32號" data-time="11:00" class="row-meal">
+          <td class="col-time">11:00–13:00</td>
+          <td class="col-item">🍽 台北午餐（丸林餐廳）</td>
+          <td class="col-note">📍 臺北市中山區圓山里民族東路32號</td>
+        </tr>
+        <tr data-time="13:00" class="row-transit">
+          <td class="col-time">13:00–13:30</td>
+          <td class="col-item">🚌 前往機場</td>
+          <td class="col-note">遊覽車接駁</td>
+        </tr>
+        <tr data-time="13:30" class="row-transit">
+          <td class="col-time">13:30–17:00</td>
+          <td class="col-item">✈ 台北松山機場</td>
+          <td class="col-note">14:40 AE1273 起飛<br>17:00 抵金門機場</td>
+        </tr>
+      </table>
+    </div>
+
+    </div><!-- /sec-itinerary -->
+
+  <!-- ② VISIT INTRO -->
+  <div class="section-block" id="sec-visit">
+    <div class="section-head">
+      <h2>參訪單位介紹</h2>
+      <span class="badge">6 UNITS</span>
+    </div>
+    <div class="visit-grid">
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">01</span>
+          <span class="vc-title">臺北市大數據中心</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">臺北大數據中心於2020年8月正式成立，為全臺首個由地方政府自主建置與營運的城市數據治理平台，以「資料驅動治理」為核心理念，透過整合各局處資料資源，建立跨域數據分析與決策支援機制，提升市政治理效率與服務品質。
+
+中心主要負責跨域數據整合、市政議題分析及決策支援系統建置，透過視覺化儀表板即時呈現交通、醫療、公共安全、社福及環境等重要資訊，協助決策者快速掌握城市運作情形。近年來已應用於疫情資訊整合、計程車載客熱點分析、人流車流監測及長者福利使用分析等多項市政應用，作為政策制定與資源配置的重要依據。
+
+此外，臺北大數據中心亦扮演智慧城市推動的重要角色，透過串接智慧城市專案成果與各項市政資料，將數據轉化為具體的治理工具與改善策略，逐步落實循證決策與智慧治理目標。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>資料整合平台建置</li>
+            <li>數據分析與決策應用</li>
+            <li>智慧城市與跨域應用</li>
+            <li>跨局處資料整合機制與資料治理制度說明</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>資訊處</strong><br>
+            承辦人：邱先生<br>
+            信箱：ba8291@gov.taipei<br>
+            電話：02-2720-8889 分機 51714
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">02</span>
+          <span class="vc-title">臺北市交通控制中心</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">臺北市交通控制中心為臺北市道路交通管理核心單位，負責全市號誌控制、交通監控、事件管理及智慧運輸系統整合應用。透過車輛偵測器、影像監視器（CCTV）、資訊可變標誌（CMS）及交控系統，即時掌握道路交通狀況，並依交通需求進行號誌調整與交通疏導，以提升道路運行效率及交通安全。近年亦持續推動智慧號誌、大數據分析及AI技術應用，作為智慧交通發展的重要基礎。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>交控中心整體架構（軟體＋硬體）</li>
+            <li>即時交通監控方式（CCTV、感測器、資料來源）</li>
+            <li>號誌控制策略（區域協調、動態調整）</li>
+            <li>壅塞偵測與應變機制</li>
+            <li>交通資訊蒐集、分析與發布方式</li>
+            <li>緊急事件處理流程</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>臺北市交通管制工程處</strong><br>
+            承辦人：黃思程 股長<br>
+            電話：02-2556-7161 分機 7410
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">03</span>
+          <span class="vc-title">臺北市交通資訊中心</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">緣於交通資訊「向下紮根」及「向上發展」的重要，臺北市政府交通局規劃於臺北轉運站B2建置實體「交通資訊中心」與B3現有之交控中心合置，並於98年12月28日正式啟用及對外開放，透過生動活潑的展示與互動體驗，讓民眾瞭解本市交通控制設施及智慧型運輸發展，更期望藉此管道，進行交通安全教育。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>即時交通資訊整合系統（ATIS）</li>
+            <li>智慧型運輸系統（ITS）應用展示</li>
+            <li>停車與大眾運輸資訊服務</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>臺北市交通資訊中心</strong><br>
+            承辦人：賴小姐<br>
+            電話：02-2720-8889 分機 6893
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">04</span>
+          <span class="vc-title">宜蘭轉運站</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">宜蘭轉運站為宜蘭地區重要公共運輸轉乘樞紐，整合國道客運、市區公車、計程車及接送車輛等多元運具，提供完善的轉乘服務與旅運環境。轉運站1樓規劃為國道客運售票、候車及轉乘空間，並設置商店、哺集乳室、親子廁所及無障礙照護床等友善設施，以滿足不同旅客需求；地下室則規劃停車場，提供汽車95席及機車888席停車位，並導入車牌辨識、電子票證收費及在席偵測等智慧停車管理系統。
+
+站區同時整合計程車排班區、接送區、公車停靠區及人行動線，打造便捷且舒適的轉乘環境，為宜蘭推動綠色運輸與公共運輸發展的重要節點。除交通轉乘功能外，亦兼具觀光服務及地方門戶形象功能。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>轉運站營運管理模式</li>
+            <li>多運具整合與轉乘機制</li>
+            <li>轉運站人流與車流動線規劃設計</li>
+            <li>即時運輸資訊系統</li>
+            <li>尖峰疏運與營運調度策略</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>宜蘭縣政府公共運輸科</strong><br>
+            承辦人：林小姐<br>
+            電話：03-9251000 分機 3816
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">05</span>
+          <span class="vc-title">台北捷運北投機廠</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">北投機廠為臺北捷運系統主要維修基地之一，負責列車檢修、設備維護及營運支援工作。機廠透過預防性維護、狀態監測及智慧維修技術，確保捷運系統安全、穩定及高效率運作。
+
+近年積極推動智慧維修及設備數位化管理，為國內軌道運輸維運管理的重要示範場域。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>車輛維修保養與機廠運作機制</li>
+            <li>運行與維修數據之整合應用</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>台北捷運北投機廠</strong><br>
+            承辦人：江士瑋 組長<br>
+            電話：02-5363001 分機 8229
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-card open">
+        <div class="vc-head" onclick="toggleCard(this.parentElement)">
+          <span class="vc-num">06</span>
+          <span class="vc-title">淡江大橋橋梁管理中心</span>
+          <span class="vc-icon">▾</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-section-label">單位介紹</div>
+          <p class="vc-desc">淡江大橋為國內重要跨河橋梁工程，橋梁管理中心負責橋梁結構監測、設備維護、交通管理及緊急事件應變工作。透過橋梁健康監測系統（SHM）、環境感測設備及交通監控系統，即時掌握橋梁安全狀況及交通運作情形。</p>
+          <div class="vc-section-label">預計參訪內容</div>
+          <ul class="vc-items">
+            <li>大橋管理中心營運模式</li>
+            <li>大橋日常巡檢與維護機制</li>
+            <li>橋梁交通監控與事件通報流程</li>
+          </ul>
+          <div class="vc-contact">
+            <strong>公路局北分局</strong><br>
+            承辦人：鄭向鉉<br>
+            電話：02-8687-5195
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /sec-visit -->
+
+  <!-- ③ ISSUES -->
+  <div class="section-block" id="sec-issues">
+    <div class="section-head">
+      <h2>討論議題</h2>
+      <span class="badge">6 TOPICS</span>
+    </div>
+    <div class="issue-list">
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">01</span>
+          <span class="ic-place">臺北市大數據中心</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>地方政府推動大數據治理之關鍵成功因素。</li>
+            <li>跨機關資料共享面臨之技術與制度挑戰。</li>
+            <li>大數據平台建置成本及維運模式。</li>
+            <li>交通、公共安全及防災等跨域資料應用案例。</li>
+            <li>如何培養政府內部資料分析人才與組織文化。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-01')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-01"></div>
+        </div>
+      </div>
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">02</span>
+          <span class="ic-place">臺北市交通控制中心</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>智慧號誌控制與自適應控制推動經驗。</li>
+            <li>交通事故應變處理流程。</li>
+            <li>施工及大型活動期間之交通管理策略。</li>
+            <li>與周圍城市的路網型協調控制應變流程。</li>
+            <li>控制中心人力配置與管理模式。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-02')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-02"></div>
+        </div>
+      </div>
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">03</span>
+          <span class="ic-place">臺北市交通資訊中心</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>智慧運輸系統（ITS）整體架構。</li>
+            <li>即時資訊與號誌控制系統整合機制。</li>
+            <li>未來智慧交通資訊服務發展方向。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-03')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-03"></div>
+        </div>
+      </div>
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">04</span>
+          <span class="ic-place">宜蘭轉運站</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>轉運站周邊交通動線規劃與管理策略。</li>
+            <li>連續假期及觀光旅次尖峰之疏運機制。</li>
+            <li>提升公共運輸使用率策略。</li>
+            <li>觀光旅運與公共運輸推廣整合。</li>
+            <li>旅客人流監測與大數據分析應用。</li>
+            <li>未來轉運站智慧化發展規劃。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-04')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-04"></div>
+        </div>
+      </div>
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">05</span>
+          <span class="ic-place">台北捷運北投機廠</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>預測性維護與設備健康監測技術。</li>
+            <li>設備生命週期管理與資產管理制度。</li>
+            <li>緊急應變及營運持續計畫（BCP）規劃。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-05')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-05"></div>
+        </div>
+      </div>
+
+      <div class="issue-card open">
+        <div class="ic-head" onclick="toggleCard(this.parentElement)">
+          <span class="ic-num">06</span>
+          <span class="ic-place">淡江大橋橋梁管理中心</span>
+          <span class="ic-icon">▾</span>
+        </div>
+        <div class="ic-body">
+          <ul class="issue-list-plain">
+            <li>結構健康監測系統（SHM）建置及應用成果。</li>
+            <li>橋梁監測資料如何支援維護決策。</li>
+            <li>強風、地震及豪雨等災害應變機制。</li>
+            <li>AI與大數據於設施維運管理之應用經驗。</li>
+          </ul>
+        </div>
+        <div class="notes-area">
+          <div class="notes-header">
+            <span class="notes-label">📌 便條紙</span>
+            <button class="btn-add-note" onclick="openNoteModal('ic-06')">＋ 新增便條</button>
+          </div>
+          <div class="notes-list" id="notelist-ic-06"></div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /sec-issues -->
+
+  <!-- ④ ROSTER -->
+  <div class="section-block" id="sec-roster">
+    <div class="section-head">
+      <h2>參訪名單</h2>
+      
+    </div>
+    <div class="roster-grid">
+
+      <!-- 金門觀光處 -->
+      <div class="roster-org open">
+        <div class="ro-head" onclick="toggleCard(this.parentElement)">
+          <span>金門縣政府觀光處</span>
+          <span class="ro-icon">▾</span>
+        </div>
+        <div class="ro-body">
+          <table class="roster-table">
+            <thead><tr><th>項次</th><th>職稱</th><th>姓名</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="col-rank">參議</td><td>許正芳</td></tr>
+              <tr><td>2</td><td class="col-rank">車船處處長</td><td>楊沁杭</td></tr>
+              <tr><td>3</td><td class="col-rank">交行科科長</td><td>江士豪</td></tr>
+              <tr><td>4</td><td class="col-rank">車船處課長</td><td>陳弘虎</td></tr>
+              <tr><td>5</td><td class="col-rank">車船處站長</td><td>董育全</td></tr>
+              <tr><td>6</td><td class="col-rank">科員</td><td>張功潭</td></tr>
+              <tr><td>7</td><td class="col-rank">技佐</td><td>陳瑩霜</td></tr>
+              <tr><td>8</td><td class="col-rank">科員</td><td>高子鈞</td></tr>
+              <tr><td>9</td><td class="col-rank">約僱人員</td><td>李梅凌</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 世曦 參訪人員 -->
+      <div class="roster-org open">
+        <div class="ro-head" onclick="toggleCard(this.parentElement)">
+          <span>台灣世曦工程顧問股份有限公司</span>
+          <span class="ro-icon">▾</span>
+        </div>
+        <div class="ro-body">
+          <table class="roster-table">
+            <thead><tr><th>項次</th><th>職稱</th><th>姓名</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="col-rank">經理</td><td>張智華</td></tr>
+              <tr><td>2</td><td class="col-rank">副理</td><td>林銘樂</td></tr>
+              <tr><td>3</td><td class="col-rank">計畫工程師</td><td>孫尉彰</td></tr>
+              <tr><td>4</td><td class="col-rank">工程師</td><td>吳宗昀</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 晚宴出席名單（跨兩欄） -->
+      <div class="roster-org open" style="grid-column: 1 / -1;">
+        <div class="ro-head" onclick="toggleCard(this.parentElement)">
+          <span>🍽 晚宴出席名單（台灣世曦工程顧問股份有限公司）</span>
+          <span class="ro-icon">▾</span>
+        </div>
+        <div class="ro-body">
+          <table class="roster-table dinner-table">
+            <thead><tr><th>項次</th><th>職稱</th><th>姓名</th><th>部門</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="col-rank">副總</td><td>王子安</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>2</td><td class="col-rank">資協</td><td>鄭宏逵</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>3</td><td class="col-rank">資協</td><td>林啓豊</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>4</td><td class="col-rank">協理</td><td>范景皓</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>5</td><td class="col-rank">協理</td><td>陳彥均</td><td><span class="dept-chip">ED 電機部</span></td></tr>
+              <tr><td>6</td><td class="col-rank">協理</td><td>吳錫賢</td><td><span class="dept-chip">GE 空資部</span></td></tr>
+              <tr><td>7</td><td class="col-rank">經理</td><td>林啟基</td><td><span class="dept-chip">MD 機械部</span></td></tr>
+              <tr><td>8</td><td class="col-rank">經理</td><td>張智華</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>9</td><td class="col-rank">經理</td><td>游上民</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>10</td><td class="col-rank">副理</td><td>林銘樂</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>11</td><td class="col-rank">副理</td><td>許家成</td><td><span class="dept-chip">GE 空資部</span></td></tr>
+              <tr><td>12</td><td class="col-rank">計畫工程師</td><td>孫尉彰</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+
+    </div>
+  </div><!-- /sec-roster -->
+
+</main>
+
+<footer>
+  金門縣交通控制系統建置技術參訪 &nbsp;|&nbsp; 2026年6月29日—7月1日 &nbsp;|&nbsp; 金門縣政府觀光處
+</footer>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+// ── ACCORDION ────────────────────────────────────────
+function toggleDay(block){
+  if(window.innerWidth >= 769) return;
+  block.classList.toggle('open');
+}
+function toggleCard(card){
+  if(window.innerWidth >= 769) return;
+  card.classList.toggle('open');
+}
+
+// ── TAB NAV ──────────────────────────────────────────
+const NAV_ID = 'main-nav';
+const SECTIONS = ['sec-itinerary','sec-visit','sec-issues','sec-roster'];
+
+function getNavH(){
+  return document.getElementById(NAV_ID).getBoundingClientRect().height;
+}
+
+// Click: scroll to section
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function(){
+    const targetId = this.dataset.target;
+    const el = document.getElementById(targetId);
+    if(!el) return;
+    const navH = getNavH();
+    // extra 8px breathing room
+    const top = el.getBoundingClientRect().top + window.scrollY - navH - 8;
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
+});
+
+// Scroll: highlight active tab
+function updateActiveTab(){
+  const navH = getNavH() + 16;
+  let active = 0;
+  SECTIONS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const rect = el.getBoundingClientRect();
+    // section is at or above the threshold
+    if(rect.top <= navH) active = i;
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === active);
+  });
+}
+window.addEventListener('scroll', updateActiveTab, { passive: true });
+updateActiveTab(); // init
+
+// ── TODAY HIGHLIGHT ───────────────────────────────────
+function highlightToday(){
+  const today = todayISO();
+  document.querySelectorAll('.day-block').forEach(block => {
+    if(block.dataset.date === today){
+      block.classList.add('today-day');
+      block.classList.add('open');
+      updateProgress(block);
+    }
+  });
+}
+
+function updateProgress(block){
+  const timesAttr = block.dataset.times;
+  if(!timesAttr) return;
+  const times = timesAttr.split(',');
+  const rows = block.querySelectorAll('tr[data-time]');
+  const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+(m||0); };
+  const now = new Date();
+  const nowMins = now.getHours()*60 + now.getMinutes();
+  const first = toMins(times[0]);
+  const last  = toMins(times[times.length-1]) + 90;
+  const pct = Math.min(100, Math.max(0, (nowMins - first) / (last - first) * 100));
+
+  const bar = block.querySelector('.day-progress-bar');
+  if(bar) bar.style.width = pct + '%';
+
+  rows.forEach((row, i) => {
+    const tStart = toMins(times[i] || '00:00');
+    const tEnd   = i+1 < times.length ? toMins(times[i+1]) : tStart + 90;
+    row.classList.toggle('current-row', nowMins >= tStart && nowMins < tEnd);
+  });
+}
+
+// ── COUNTDOWN ────────────────────────────────────────
+const EV_START = new Date(2026, 5, 29,  8, 25, 0);
+const EV_END   = new Date(2026, 6,  1, 17,  0, 0);
+
+function tick(){
+  const now = new Date();
+  const status = document.getElementById('cd-status');
+  let target, label;
+  if(now < EV_START){
+    target = EV_START; label = '距活動開始';
+  } else if(now <= EV_END){
+    target = EV_END;   label = '活動進行中・距結束';
+  } else {
+    ['cd-d','cd-h','cd-m','cd-s'].forEach(id => document.getElementById(id).textContent = '00');
+    status.textContent = '✓ 活動已圓滿結束';
+    return;
+  }
+  const diff = Math.max(0, target - now);
+  document.getElementById('cd-d').textContent = pad(Math.floor(diff/86400000));
+  document.getElementById('cd-h').textContent = pad(Math.floor(diff%86400000/3600000));
+  document.getElementById('cd-m').textContent = pad(Math.floor(diff%3600000/60000));
+  document.getElementById('cd-s').textContent = pad(Math.floor(diff%60000/1000));
+  status.textContent = label;
+}
+
+// ── MOBILE INIT ───────────────────────────────────────
+function mobileInit(){
+  if(window.innerWidth >= 769) return;
+  // collapse non-today day blocks
+  document.querySelectorAll('.day-block:not(.today-day)').forEach(b => b.classList.remove('open'));
+  // collapse all cards
+  document.querySelectorAll('.visit-card,.issue-card,.roster-org').forEach(c => c.classList.remove('open'));
+}
+
+
+// ── LOGIN ─────────────────────────────────────────────
+const PW_HASH = '084b75c2237c87713f337745abde7c974a7150f010ee145de1d29957d4b7c35e';
+let pwVisible = false;
+let failCount = 0;
+let lockUntil = 0;
+
+// Hide main content until authenticated
+document.getElementById('login-overlay').style.display = 'flex';
+
+// Check session
+(function(){
+  try {
+    if(sessionStorage.getItem('auth') === PW_HASH){
+      document.getElementById('login-overlay').style.display = 'none';
+    }
+  } catch(e){}
+})();
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function togglePw(){
+  const inp = document.getElementById('pw-input');
+  const btn = document.getElementById('toggle-pw');
+  pwVisible = !pwVisible;
+  inp.style.webkitTextSecurity = pwVisible ? 'none' : 'disc';
+  inp.type = pwVisible ? 'text' : 'password';
+  btn.textContent = pwVisible ? '🙈' : '👁';
+}
+
+async function doLogin(){
+  const now = Date.now();
+  const errEl = document.getElementById('login-error');
+  const box = document.getElementById('login-box');
+
+  if(now < lockUntil){
+    const sec = Math.ceil((lockUntil - now)/1000);
+    errEl.textContent = '⚠ 請稍候 ' + sec + ' 秒後再試';
+    return;
+  }
+
+  const val = document.getElementById('pw-input').value;
+  if(!val){ errEl.textContent = '請輸入密碼'; return; }
+
+  const hash = await sha256(val);
+  if(hash === PW_HASH){
+    try { sessionStorage.setItem('auth', PW_HASH); } catch(e){}
+    errEl.textContent = '';
+    document.getElementById('login-overlay').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('login-overlay').style.display = 'none';
+    }, 520);
+  } else {
+    failCount++;
+    document.getElementById('pw-input').value = '';
+    box.classList.remove('shake');
+    void box.offsetWidth; // reflow
+    box.classList.add('shake');
+
+    if(failCount >= 5){
+      lockUntil = Date.now() + 30000;
+      errEl.textContent = '⚠ 嘗試次數過多，鎖定 30 秒';
+      failCount = 0;
+    } else {
+      errEl.textContent = '✕ 密碼錯誤，請重新輸入（第 ' + failCount + ' 次）';
+    }
+  }
+}
+
+
+// ── STICKY NOTES ─────────────────────────────────────
+const NOTES_KEY = 'kinmen_visit_notes_2026';
+
+function loadAllNotes() {
+  try { return JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveAllNotes(data) {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function renderNotes(cid) {
+  const list = document.getElementById('notelist-' + cid);
+  if (!list) return;
+  const all = loadAllNotes();
+  const notes = all[cid] || [];
+  list.innerHTML = '';
+  if (notes.length === 0) {
+    list.innerHTML = '<span style="font-size:var(--fs-sm);color:var(--muted);font-style:italic;">尚無便條，點擊「＋ 新增便條」留下您的備註。</span>';
+    return;
+  }
+  notes.forEach(function(n, idx) {
+    const card = document.createElement('div');
+    const colorClass = n.color && n.color !== 'yellow' ? n.color : '';
+    card.className = 'note-card' + (colorClass ? ' ' + colorClass : '');
+    const ts = new Date(n.ts).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const editBtn = document.createElement('button');
+    editBtn.className = 'note-btn';
+    editBtn.textContent = '✏ 編輯';
+    editBtn.setAttribute('data-cid', cid);
+    editBtn.setAttribute('data-idx', idx);
+    editBtn.setAttribute('data-action', 'edit');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'note-btn del';
+    delBtn.textContent = '✕ 刪除';
+    delBtn.setAttribute('data-cid', cid);
+    delBtn.setAttribute('data-idx', idx);
+    delBtn.setAttribute('data-action', 'delete');
+    const actDiv = document.createElement('div');
+    actDiv.className = 'note-actions';
+    actDiv.appendChild(editBtn);
+    actDiv.appendChild(delBtn);
+    card.innerHTML =
+      '<div class="note-author">✍ ' + escHtml(n.name) + '</div>' +
+      '<div class="note-body">' + escHtml(n.body) + '</div>' +
+      '<div class="note-ts">' + ts + '</div>';
+    card.appendChild(actDiv);
+    list.appendChild(card);
+  });
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderAllNotes() {
+  ['ic-01','ic-02','ic-03','ic-04','ic-05','ic-06'].forEach(renderNotes);
+}
+
+// ── MODAL STATE ──
+let _modalCid = null;
+let _editIdx   = null;
+let _selColor  = 'yellow';
+
+function openNoteModal(cid, editIdx) {
+  _modalCid = cid;
+  _editIdx  = (editIdx !== undefined) ? editIdx : null;
+  const backdrop = document.getElementById('note-modal-backdrop');
+  const title    = document.getElementById('modal-title');
+  const nameEl   = document.getElementById('note-name');
+  const bodyEl   = document.getElementById('note-body');
+  document.getElementById('modal-err').textContent = '';
+
+  if (_editIdx !== null) {
+    const all = loadAllNotes();
+    const n   = (all[cid] || [])[_editIdx];
+    if (n) {
+      nameEl.value = n.name;
+      bodyEl.value = n.body;
+      _selColor = n.color || 'yellow';
+      title.textContent = '✏️ 編輯便條';
+    }
+  } else {
+    nameEl.value = '';
+    bodyEl.value = '';
+    _selColor = 'yellow';
+    title.textContent = '✏️ 新增便條';
+  }
+  // sync color UI
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.c === _selColor);
+  });
+
+  backdrop.classList.add('open');
+  setTimeout(() => nameEl.focus(), 80);
+}
+
+function closeNoteModal() {
+  document.getElementById('note-modal-backdrop').classList.remove('open');
+  _modalCid = null; _editIdx = null;
+}
+
+function selectColor(el) {
+  document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  _selColor = el.dataset.c;
+}
+
+function saveNote() {
+  const name = document.getElementById('note-name').value.trim();
+  const body = document.getElementById('note-body').value.trim();
+  const err  = document.getElementById('modal-err');
+  if (!name) { err.textContent = '請填寫姓名'; return; }
+  if (!body) { err.textContent = '請填寫內容'; return; }
+  err.textContent = '';
+
+  const all   = loadAllNotes();
+  if (!all[_modalCid]) all[_modalCid] = [];
+
+  const note = { name, body, color: _selColor, ts: Date.now() };
+  if (_editIdx !== null) {
+    all[_modalCid][_editIdx] = note;
+  } else {
+    all[_modalCid].unshift(note);
+  }
+  saveAllNotes(all);
+  renderNotes(_modalCid);
+  closeNoteModal();
+}
+
+function editNote(cid, idx) { openNoteModal(cid, idx); }
+
+function deleteNote(cid, idx) {
+  const all = loadAllNotes();
+  if (all[cid]) { all[cid].splice(idx, 1); saveAllNotes(all); }
+  renderNotes(cid);
+}
+
+// Close modal on backdrop click + Escape — deferred until DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Modal backdrop click to close
+  var bd = document.getElementById('note-modal-backdrop');
+  if (bd) bd.addEventListener('click', function(e) {
+    if (e.target === this) closeNoteModal();
+  });
+  // Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeNoteModal();
+  });
+  // Delegated click for note edit/delete buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    var cid    = btn.getAttribute('data-cid');
+    var idx    = parseInt(btn.getAttribute('data-idx'), 10);
+    if (action === 'edit')   { editNote(cid, idx); }
+    if (action === 'delete') { deleteNote(cid, idx); }
+  });
+
+  // 手機版：為有 data-addr 的 tr 插入 📍 按鈕到 col-time
+  function buildAddrBtns() {
+    if (window.innerWidth >= 769) {
+      document.querySelectorAll('.addr-btn').forEach(function(b){ b.remove(); });
+      document.querySelectorAll('tr.addr-row').forEach(function(r){ r.remove(); });
+      return;
+    }
+    document.querySelectorAll('tr[data-addr]').forEach(function(tr) {
+      var timeCell = tr.querySelector('.col-time');
+      if (!timeCell || timeCell.querySelector('.addr-btn')) return;
+      var btn = document.createElement('button');
+      btn.className = 'addr-btn';
+      btn.textContent = '📍 查看地址';
+      btn.onclick = function() { toggleAddrRow(btn); };
+      timeCell.appendChild(btn);
+    });
+  }
+  buildAddrBtns();
+  window.addEventListener('resize', buildAddrBtns);
+});
+
+
+// ── ADDRESS TOGGLE ───────────────────────────────────
+function toggleAddrRow(btn) {
+  var tr = btn.closest('tr');
+  if (!tr) return;
+  var addr = tr.getAttribute('data-addr');
+  if (!addr) return;
+  var next = tr.nextElementSibling;
+  if (next && next.classList.contains('addr-row')) {
+    next.remove();
+    btn.textContent = '📍 查看地址';
+    btn.classList.remove('active');
+  } else {
+    var newTr = document.createElement('tr');
+    newTr.className = 'addr-row';
+    var td = document.createElement('td');
+    td.setAttribute('colspan', '3');
+    td.textContent = '📍 ' + addr;
+    newTr.appendChild(td);
+    tr.parentNode.insertBefore(newTr, next);
+    btn.textContent = '✕ 收起';
+    btn.classList.add('active');
+  }
+}
+// ── BOOT ─────────────────────────────────────────────
+highlightToday();
+mobileInit();
+tick();
+setInterval(tick, 1000);
+setInterval(() => {
+  document.querySelectorAll('.day-block.today-day').forEach(updateProgress);
+}, 60000);
+renderAllNotes();
+</script>
+
+<!-- STICKY NOTE MODAL -->
+<div id="note-modal-backdrop">
+  <div id="note-modal">
+    <h3 id="modal-title">✏️ 新增便條</h3>
+    <div class="modal-field">
+      <label>姓名</label>
+      <input type="text" id="note-name" placeholder="請輸入您的姓名" maxlength="20">
+    </div>
+    <div class="modal-field">
+      <label>內容</label>
+      <textarea id="note-body" placeholder="請輸入備註內容..." maxlength="300"></textarea>
+    </div>
+    <div class="modal-field">
+      <label>便條顏色</label>
+      <div class="modal-colors">
+        <div class="color-opt selected" data-c="yellow" onclick="selectColor(this)" title="黃色"></div>
+        <div class="color-opt" data-c="blue"   onclick="selectColor(this)" title="藍色"></div>
+        <div class="color-opt" data-c="green"  onclick="selectColor(this)" title="綠色"></div>
+        <div class="color-opt" data-c="pink"   onclick="selectColor(this)" title="粉色"></div>
+      </div>
+    </div>
+    <div class="modal-err" id="modal-err"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeNoteModal()">取消</button>
+      <button class="btn-modal-save" id="modal-save-btn" onclick="saveNote()">儲存便條</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
