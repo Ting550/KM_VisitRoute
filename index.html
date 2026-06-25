@@ -813,36 +813,38 @@ footer {
     min-width: 1.5rem;
     padding-right: .1rem;
   }
-  /* 職稱：灰小字，固定寬度讓姓名對齊 */
+  /* 職稱：固定寬度，確保姓名垂直對齊 */
   .dinner-table td:nth-child(2) {
     color: var(--muted);
-    font-size: var(--fs-xs);
-    flex: 0 0 4.5rem;
-    width: 4.5rem;
+    font-size: clamp(11px, 3vw, 14px);
+    flex: 0 0 clamp(4rem, 20vw, 6rem);
+    width: clamp(4rem, 20vw, 6rem);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  /* 姓名：粗體，固定寬度靠左，視覺上垂直對齊 */
+  /* 姓名：固定寬度靠右，每列起始位置一致 */
   .dinner-table td:nth-child(3) {
     font-weight: 700;
-    font-size: var(--fs-base);
+    font-size: clamp(14px, 4vw, 18px);
     color: var(--ink);
-    flex: 0 0 4rem;
-    width: 4rem;
+    flex: 0 0 clamp(3.5rem, 18vw, 5rem);
+    width: clamp(3.5rem, 18vw, 5rem);
     white-space: nowrap;
-    text-align: left;
+    text-align: right;
   }
-  /* 部門 chip：靠右，絕不換行 */
+  /* 部門 chip：自動填滿剩餘空間，字體流體縮放 */
   .dinner-table td:nth-child(4) {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     padding: 0 0 0 .25rem;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
   }
   .dinner-table td:nth-child(4) .dept-chip {
-    font-size: var(--fs-xs);
-    padding: .1rem .4rem;
+    font-size: clamp(9px, 2.5vw, 13px);
+    padding: .1rem clamp(.25rem, 1.5vw, .4rem);
     white-space: nowrap;
   }
 }
@@ -1450,7 +1452,7 @@ footer {
           <table class="roster-table">
             <thead><tr><th>項次</th><th>職稱</th><th>姓名</th></tr></thead>
             <tbody>
-              <tr><td>1</td><td class="col-rank">經理</td><td>張智華</td></tr>
+              <tr><td>1</td><td class="col-rank">技術經理</td><td>張智華</td></tr>
               <tr><td>2</td><td class="col-rank">副理</td><td>林銘樂</td></tr>
               <tr><td>3</td><td class="col-rank">計畫工程師</td><td>孫尉彰</td></tr>
               <tr><td>4</td><td class="col-rank">工程師</td><td>吳宗昀</td></tr>
@@ -1469,15 +1471,15 @@ footer {
           <table class="roster-table dinner-table">
             <thead><tr><th>項次</th><th>職稱</th><th>姓名</th><th>部門</th></tr></thead>
             <tbody>
-              <tr><td>1</td><td class="col-rank">副總</td><td>王子安</td><td><span class="dept-chip">HO 經理部</span></td></tr>
-              <tr><td>2</td><td class="col-rank">資協</td><td>鄭宏逵</td><td><span class="dept-chip">HO 經理部</span></td></tr>
-              <tr><td>3</td><td class="col-rank">資協</td><td>林啓豊</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>1</td><td class="col-rank">副總經理</td><td>王子安</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>2</td><td class="col-rank">資深協理</td><td>鄭宏逵</td><td><span class="dept-chip">HO 經理部</span></td></tr>
+              <tr><td>3</td><td class="col-rank">資深協理</td><td>林啓豊</td><td><span class="dept-chip">HO 經理部</span></td></tr>
               <tr><td>4</td><td class="col-rank">協理</td><td>范景皓</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
               <tr><td>5</td><td class="col-rank">協理</td><td>陳彥均</td><td><span class="dept-chip">ED 電機部</span></td></tr>
               <tr><td>6</td><td class="col-rank">協理</td><td>吳錫賢</td><td><span class="dept-chip">GE 空資部</span></td></tr>
-              <tr><td>7</td><td class="col-rank">經理</td><td>林啟基</td><td><span class="dept-chip">MD 機械部</span></td></tr>
-              <tr><td>8</td><td class="col-rank">經理</td><td>張智華</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
-              <tr><td>9</td><td class="col-rank">經理</td><td>游上民</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>7</td><td class="col-rank">技術經理</td><td>林啟基</td><td><span class="dept-chip">MD 機械部</span></td></tr>
+              <tr><td>8</td><td class="col-rank">技術經理</td><td>張智華</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
+              <tr><td>9</td><td class="col-rank">業務經理</td><td>游上民</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
               <tr><td>10</td><td class="col-rank">副理</td><td>林銘樂</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
               <tr><td>11</td><td class="col-rank">副理</td><td>許家成</td><td><span class="dept-chip">GE 空資部</span></td></tr>
               <tr><td>12</td><td class="col-rank">計畫工程師</td><td>孫尉彰</td><td><span class="dept-chip">IS 智慧系統部</span></td></tr>
